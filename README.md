@@ -33,7 +33,7 @@ O projeto não possui dependências externas ou necessidade de servidor. Para ut
 
 ## 👤 Autor
 
-Desenvolvido por **Sergio Eric Reis de Oliveira** Instagram: [@prof.sergio.eric.matematica](https://www.instagram.com/prof.sergio.eric.matematica)
+Desenvolvido por **Sergio Eric** Instagram: [@prof.sergio.eric.matematica](https://www.instagram.com/prof.sergio.eric.matematica)
 
 ## 📄 Licença
 
