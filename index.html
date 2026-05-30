@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadoras UNIVESP - TCC e PI</title>
+    <title>Simulador de Médias UNIVESP</title>
     <style>
         :root {
             --primary-color: #0056b3;
             --secondary-color: #6c757d;
             --success-color: #28a745;
             --danger-color: #dc3545;
+            --warning-color: #ffc107;
             --background-color: #f4f6f9;
             --card-color: #ffffff;
             --text-muted: #6c757d;
@@ -24,6 +25,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            overflow-x: hidden; /* Evita rolagem com os fogos */
         }
 
         .container {
@@ -34,15 +36,25 @@
             width: 100%;
             max-width: 450px;
             position: relative;
+            z-index: 10;
+        }
+
+        .main-title {
+            text-align: center;
+            color: var(--primary-color);
+            font-size: 1.6rem;
+            margin: 0 0 5px 0;
         }
 
         h2 {
             text-align: center;
-            color: #333;
+            color: #555;
+            font-size: 1.1rem;
+            font-weight: 400;
+            margin-top: 0;
             margin-bottom: 25px;
         }
 
-        /* Controle de Telas */
         .tela {
             display: none;
             animation: fadeIn 0.3s ease-in-out;
@@ -56,10 +68,9 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Estilos dos Inputs e Botões */
-        .input-group {
-            margin-bottom: 15px;
-        }
+        .input-group { margin-bottom: 15px; }
+        .input-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .input-row .input-group { flex: 1; margin-bottom: 0; }
 
         label {
             display: block;
@@ -97,30 +108,17 @@
             margin-top: 10px;
         }
 
-        button:hover {
-            background-color: #004494;
-        }
-
-        button.btn-menu {
-            margin-bottom: 15px;
-            background-color: #17a2b8;
-        }
-        button.btn-menu:hover {
-            background-color: #117a8b;
-        }
-
+        button:hover { background-color: #004494; }
+        button.btn-menu { margin-bottom: 15px; background-color: #17a2b8; }
+        button.btn-menu:hover { background-color: #117a8b; }
         button.btn-voltar {
             background-color: transparent;
             color: var(--secondary-color);
             border: 1px solid var(--secondary-color);
             margin-top: 15px;
         }
-        button.btn-voltar:hover {
-            background-color: var(--secondary-color);
-            color: white;
-        }
+        button.btn-voltar:hover { background-color: var(--secondary-color); color: white; }
 
-        /* Caixas de Resultado */
         .result-box {
             margin-top: 25px;
             padding: 15px;
@@ -129,28 +127,31 @@
             text-align: center;
         }
 
-        .aprovado {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .aprovado { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .reprovado { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .exame { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+
+        .result-box h3 { margin: 0 0 10px 0; }
+        .result-box p { margin: 5px 0; font-size: 1.1rem; }
+
+        .exame-alerta {
+            background-color: #ffecb5;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #664d03;
+            border: 1px dashed #c69500;
         }
 
-        .reprovado {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .section-title {
+            margin: 20px 0 10px 0;
+            font-size: 1rem;
+            color: var(--primary-color);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
         }
 
-        .result-box h3 {
-            margin: 0 0 10px 0;
-        }
-
-        .result-box p {
-            margin: 5px 0;
-            font-size: 1.1rem;
-        }
-
-        /* Rodapé */
         footer {
             margin-top: 30px;
             padding-top: 15px;
@@ -159,31 +160,100 @@
             font-size: 0.85rem;
             color: var(--text-muted);
         }
+        footer a { color: var(--primary-color); text-decoration: none; font-weight: bold; }
+        footer a:hover { text-decoration: underline; }
 
-        footer a {
-            color: var(--primary-color);
-            text-decoration: none;
-            font-weight: bold;
+        /* Animação dos Fogos de Artifício (Opacidade 30%) */
+        .particula-fogo {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            opacity: 0.7; /* Pedido: 30% de opacidade */
+            pointer-events: none;
+            z-index: 9999;
+            animation: explodir 1.5s ease-out forwards;
         }
 
-        footer a:hover {
-            text-decoration: underline;
+        @keyframes explodir {
+            0% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+            70% { opacity: 0.3; }
+            100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    
+    <h1 class="main-title">Simulador de Médias UNIVESP</h1>
+
     <div id="tela-menu" class="tela ativa">
-        <h2>Selecione a Calculadora</h2>
-        <button class="btn-menu" onclick="mudarTela('tela-tcc')">🎓 Calculadora de TCC</button>
-        <button class="btn-menu" onclick="mudarTela('tela-pi')">🚀 Calculadora de Projeto Integrador (PI)</button>
+        <h2>Menu Principal</h2>
+        <button class="btn-menu" onclick="mudarTela('tela-disciplina')">📚 Notas de Disciplinas (AVA + Prova)</button>
+        <button class="btn-menu" onclick="mudarTela('tela-tcc')">🎓 Média de TCC</button>
+        <button class="btn-menu" onclick="mudarTela('tela-pi')">🚀 Média de Projeto Integrador (PI)</button>
+    </div>
+
+    <div id="tela-disciplina" class="tela">
+        <h2>Média de Disciplina Regular</h2>
+        <div class="section-title">Atividades Avaliativas (AVA - 40%)</div>
+        <div class="input-row">
+            <div class="input-group">
+                <label for="disc_s1">Semana 1 (8%)</label>
+                <input type="number" id="disc_s1" min="0" max="10" step="0.1" placeholder="0 a 10">
+            </div>
+            <div class="input-group">
+                <label for="disc_s2">Semana 2 (12%)</label>
+                <input type="number" id="disc_s2" min="0" max="10" step="0.1" placeholder="0 a 10">
+            </div>
+        </div>
+        <div class="input-row">
+            <div class="input-group">
+                <label for="disc_s3">Semana 3 (17%)</label>
+                <input type="number" id="disc_s3" min="0" max="10" step="0.1" placeholder="0 a 10">
+            </div>
+            <div class="input-group">
+                <label for="disc_s4">Semana 4 (17%)</label>
+                <input type="number" id="disc_s4" min="0" max="10" step="0.1" placeholder="0 a 10">
+            </div>
+        </div>
+        <div class="input-row">
+            <div class="input-group">
+                <label for="disc_s5">Semana 5 (17%)</label>
+                <input type="number" id="disc_s5" min="0" max="10" step="0.1" placeholder="0 a 10">
+            </div>
+            <div class="input-group">
+                <label for="disc_s6">Semana 6 (17%)</label>
+                <input type="number" id="disc_s6" min="0" max="10" step="0.1" placeholder="0 a 10">
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="disc_s7">Semana 7 (12%)</label>
+            <input type="number" id="disc_s7" min="0" max="10" step="0.1" placeholder="0 a 10">
+        </div>
+
+        <div class="section-title">Prova Presencial (60%)</div>
+        <div class="input-group">
+            <label for="disc_prova">Nota da Prova Regular</label>
+            <input type="number" id="disc_prova" min="0" max="10" step="0.1" placeholder="Nota de 0 a 10">
+        </div>
+
+        <button onclick="calcular_disciplina()">Calcular Média da Disciplina</button>
+        <button class="btn-voltar" onclick="mudarTela('tela-menu')">← Voltar ao Menu</button>
+
+        <div id="resultado-disciplina" class="result-box">
+            <h3 id="statusTxt-disciplina"></h3>
+            <p>Nota Ponderada do AVA: <span id="notaAvaTxt" style="font-weight: bold;"></span></p>
+            <p>Média Final Bimestral: <span id="mediaFinalTxt-disciplina" style="font-weight: bold; font-size: 1.3rem;"></span></p>
+            
+            <div id="alerta-exame" class="exame-alerta" style="display: none;">
+                🚨 Você precisa tirar <span id="notaNecessariaTxt" style="font-size: 1.2rem; text-decoration: underline;"></span> no Exame Final para alcançar a média 5.0!
+            </div>
+        </div>
     </div>
 
     <div id="tela-tcc" class="tela">
-        <h2>Média TCC</h2>
-        
+        <h2>Média de TCC</h2>
         <div class="input-group">
             <label for="tcc_e1">1ª Entrega (15%)</label>
             <input type="number" id="tcc_e1" min="0" max="10" step="0.1" placeholder="Nota de 0 a 10">
@@ -212,8 +282,7 @@
     </div>
 
     <div id="tela-pi" class="tela">
-        <h2>Média Projeto Integrador</h2>
-        
+        <h2>Média de Projeto Integrador (PI)</h2>
         <div class="input-group">
             <label for="pi_a1">Avaliação 1: Plano de Ação (15%)</label>
             <input type="number" id="pi_a1" min="0" max="10" step="0.1" placeholder="Nota de 0 a 10">
@@ -231,7 +300,7 @@
             <input type="number" id="pi_a4" min="0" max="10" step="0.1" placeholder="Nota de 0 a 10">
         </div>
         <div class="input-group">
-            <label for="pi_a5">Avaliação 5: Avaliação Colaborativa (15%)</label>
+            <label for="pi_a5">Avaliação 5: Avaliação Colab. (15%)</label>
             <input type="number" id="pi_a5" min="0" max="10" step="0.1" placeholder="Nota de 0 a 10">
         </div>
 
@@ -251,23 +320,128 @@
 </div>
 
 <script>
-// Função para navegar entre as telas (Menu, TCC, PI)
-function mudarTela(idTelaDestino) {
-    // Esconde todas as telas
-    const telas = document.querySelectorAll('.tela');
-    telas.forEach(tela => {
-        tela.classList.remove('ativa');
-    });
+// --- Áudio de Explosão (Sintetizador Web Audio API) ---
+let audioCtx;
+function tocarSintetizadorExplosao() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    
+    const duration = 1.2;
+    const bufferSize = audioCtx.sampleRate * duration;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    
+    // Gera ruído branco
+    for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+    }
+    
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    
+    // Filtro para simular o som abafado de "Boom" (explosão)
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(600, audioCtx.currentTime);
+    filter.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + duration);
+    
+    // Controle de volume para fazer o som dissipar
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.5, audioCtx.currentTime); 
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+    
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
+    noise.start();
+}
 
-    // Oculta os resultados ao mudar de tela para manter a interface limpa
+// --- Gerador Visual de Fogos ---
+function lancarFogos() {
+    const cores = ['#ff0044', '#00ff44', '#4400ff', '#ffdd00', '#00ffff'];
+
+    // Lança 3 explosões em tempos diferentes
+    for (let e = 0; e < 3; e++) {
+        setTimeout(() => {
+            tocarSintetizadorExplosao(); // Som ao estourar
+            
+            const originX = Math.random() * 80 + 10; // Posição X (10 a 90vw)
+            const originY = Math.random() * 50 + 10; // Posição Y (10 a 60vh)
+            const corMestre = cores[Math.floor(Math.random() * cores.length)];
+
+            // Gera as partículas da explosão
+            for (let i = 0; i < 40; i++) {
+                const particula = document.createElement('div');
+                particula.className = 'particula-fogo';
+                particula.style.left = originX + 'vw';
+                particula.style.top = originY + 'vh';
+                particula.style.backgroundColor = corMestre;
+                
+                // Direção circular aleatória para espalhar
+                const angulo = Math.random() * Math.PI * 2;
+                const forca = Math.random() * 150 + 50; 
+                
+                particula.style.setProperty('--dx', Math.cos(angulo) * forca + 'px');
+                particula.style.setProperty('--dy', Math.sin(angulo) * forca + 'px');
+                
+                document.body.appendChild(particula);
+                
+                // Limpa do DOM depois de finalizar
+                setTimeout(() => particula.remove(), 1500);
+            }
+        }, e * 450); // Atraso entre cada foguete
+    }
+}
+
+// --- Navegação de Telas ---
+function mudarTela(idTelaDestino) {
+    const telas = document.querySelectorAll('.tela');
+    telas.forEach(tela => tela.classList.remove('ativa'));
+    
+    document.getElementById('resultado-disciplina').style.display = 'none';
     document.getElementById('resultado-tcc').style.display = 'none';
     document.getElementById('resultado-pi').style.display = 'none';
 
-    // Mostra a tela desejada
     document.getElementById(idTelaDestino).classList.add('ativa');
 }
 
-// Lógica de Cálculo do TCC
+// --- CÁLCULO DAS DISCIPLINAS ---
+function calcular_disciplina() {
+    const s1 = parseFloat(document.getElementById('disc_s1').value) || 0;
+    const s2 = parseFloat(document.getElementById('disc_s2').value) || 0;
+    const s3 = parseFloat(document.getElementById('disc_s3').value) || 0;
+    const s4 = parseFloat(document.getElementById('disc_s4').value) || 0;
+    const s5 = parseFloat(document.getElementById('disc_s5').value) || 0;
+    const s6 = parseFloat(document.getElementById('disc_s6').value) || 0;
+    const s7 = parseFloat(document.getElementById('disc_s7').value) || 0;
+    const prova = parseFloat(document.getElementById('disc_prova').value) || 0;
+
+    const mediaAva = (s1 * 0.08) + (s2 * 0.12) + (s3 * 0.17) + (s4 * 0.17) + (s5 * 0.17) + (s6 * 0.17) + (s7 * 0.12);
+    const mediaFinal = (mediaAva * 0.4) + (prova * 0.6);
+
+    const resultBox = document.getElementById('resultado-disciplina');
+    const statusTxt = document.getElementById('statusTxt-disciplina');
+    const alertaExame = document.getElementById('alerta-exame');
+    
+    document.getElementById('notaAvaTxt').innerText = mediaAva.toFixed(2);
+    document.getElementById('mediaFinalTxt-disciplina').innerText = mediaFinal.toFixed(2);
+
+    if (mediaFinal >= 5.0) {
+        statusTxt.innerText = "🎉 Aprovado Direto!";
+        resultBox.className = "result-box aprovado";
+        alertaExame.style.display = 'none';
+        lancarFogos();
+    } else {
+        const notaNecessariaExame = (10 - mediaFinal).toFixed(2);
+        statusTxt.innerText = "⚠️ Exame Final!";
+        resultBox.className = "result-box exame";
+        document.getElementById('notaNecessariaTxt').innerText = notaNecessariaExame;
+        alertaExame.style.display = 'block';
+    }
+    resultBox.style.display = 'block';
+}
+
+// --- CÁLCULO DO TCC ---
 function calcular_tcc() {
     const e1 = parseFloat(document.getElementById('tcc_e1').value) || 0;
     const e2 = parseFloat(document.getElementById('tcc_e2').value) || 0;
@@ -277,42 +451,46 @@ function calcular_tcc() {
     const notaEntrega3 = (av1 + av2) / 2;
     const mediaFinal = (e1 * 0.15) + (e2 * 0.15) + (notaEntrega3 * 0.70);
     
-    exibirResultado('tcc', mediaFinal, notaEntrega3);
-}
-
-// Lógica de Cálculo do PI
-function calcular_pi() {
-    const a1 = parseFloat(document.getElementById('pi_a1').value) || 0; // 15%
-    const a2 = parseFloat(document.getElementById('pi_a2').value) || 0; // 25%
-    const a3 = parseFloat(document.getElementById('pi_a3').value) || 0; // 35%
-    const a4 = parseFloat(document.getElementById('pi_a4').value) || 0; // 10%
-    const a5 = parseFloat(document.getElementById('pi_a5').value) || 0; // 15%
-
-    const mediaFinal = (a1 * 0.15) + (a2 * 0.25) + (a3 * 0.35) + (a4 * 0.10) + (a5 * 0.15);
+    const resultBox = document.getElementById('resultado-tcc');
+    const statusTxt = document.getElementById('statusTxt-tcc');
     
-    exibirResultado('pi', mediaFinal);
-}
-
-// Função auxiliar para renderizar os resultados na tela correspondente
-function exibirResultado(tipo, mediaFinal, notaExtra = null) {
-    const resultBox = document.getElementById(`resultado-${tipo}`);
-    const statusTxt = document.getElementById(`statusTxt-${tipo}`);
-    const mediaFinalTxt = document.getElementById(`mediaFinalTxt-${tipo}`);
-
-    mediaFinalTxt.innerText = mediaFinal.toFixed(2);
-
-    if (tipo === 'tcc' && notaExtra !== null) {
-        document.getElementById('notaE3Txt-tcc').innerText = notaExtra.toFixed(2);
-    }
+    document.getElementById('notaE3Txt-tcc').innerText = notaEntrega3.toFixed(2);
+    document.getElementById('mediaFinalTxt-tcc').innerText = mediaFinal.toFixed(2);
 
     if (mediaFinal >= 5.0) {
         statusTxt.innerText = "🎉 Aprovado!";
         resultBox.className = "result-box aprovado";
+        lancarFogos();
     } else {
         statusTxt.innerText = "❌ Reprovado";
         resultBox.className = "result-box reprovado";
     }
+    resultBox.style.display = 'block';
+}
 
+// --- CÁLCULO DO PI ---
+function calcular_pi() {
+    const a1 = parseFloat(document.getElementById('pi_a1').value) || 0;
+    const a2 = parseFloat(document.getElementById('pi_a2').value) || 0;
+    const a3 = parseFloat(document.getElementById('pi_a3').value) || 0;
+    const a4 = parseFloat(document.getElementById('pi_a4').value) || 0;
+    const a5 = parseFloat(document.getElementById('pi_a5').value) || 0;
+
+    const mediaFinal = (a1 * 0.15) + (a2 * 0.25) + (a3 * 0.35) + (a4 * 0.10) + (a5 * 0.15);
+    
+    const resultBox = document.getElementById('resultado-pi');
+    const statusTxt = document.getElementById('statusTxt-pi');
+    
+    document.getElementById('mediaFinalTxt-pi').innerText = mediaFinal.toFixed(2);
+
+    if (mediaFinal >= 5.0) {
+        statusTxt.innerText = "🎉 Aprovado!";
+        resultBox.className = "result-box aprovado";
+        lancarFogos();
+    } else {
+        statusTxt.innerText = "❌ Reprovado";
+        resultBox.className = "result-box reprovado";
+    }
     resultBox.style.display = 'block';
 }
 </script>
