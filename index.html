@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Média - TCC UNIVESP</title>
+    <title>Calculadoras UNIVESP - TCC e PI</title>
     <style>
         :root {
             --primary-color: #0056b3;
+            --secondary-color: #6c757d;
             --success-color: #28a745;
             --danger-color: #dc3545;
             --background-color: #f4f6f9;
@@ -32,6 +33,7 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 450px;
+            position: relative;
         }
 
         h2 {
@@ -40,6 +42,21 @@
             margin-bottom: 25px;
         }
 
+        /* Controle de Telas */
+        .tela {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .tela.ativa {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Estilos dos Inputs e Botões */
         .input-group {
             margin-bottom: 15px;
         }
@@ -84,6 +101,26 @@
             background-color: #004494;
         }
 
+        button.btn-menu {
+            margin-bottom: 15px;
+            background-color: #17a2b8;
+        }
+        button.btn-menu:hover {
+            background-color: #117a8b;
+        }
+
+        button.btn-voltar {
+            background-color: transparent;
+            color: var(--secondary-color);
+            border: 1px solid var(--secondary-color);
+            margin-top: 15px;
+        }
+        button.btn-voltar:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        /* Caixas de Resultado */
         .result-box {
             margin-top: 25px;
             padding: 15px;
@@ -113,6 +150,7 @@
             font-size: 1.1rem;
         }
 
+        /* Rodapé */
         footer {
             margin-top: 30px;
             padding-top: 15px;
@@ -136,71 +174,137 @@
 <body>
 
 <div class="container">
-    <h2>Simulador de Média TCC - UNIVESP</h2>
     
-    <div class="input-group">
-        <label for="e1">1ª Entrega (Peso 15%)</label>
-        <input type="number" id="e1" min="0" max="10" step="0.1" placeholder="Nota de 0 a 10">
+    <div id="tela-menu" class="tela ativa">
+        <h2>Selecione a Calculadora</h2>
+        <button class="btn-menu" onclick="mudarTela('tela-tcc')">🎓 Calculadora de TCC</button>
+        <button class="btn-menu" onclick="mudarTela('tela-pi')">🚀 Calculadora de Projeto Integrador (PI)</button>
     </div>
 
-    <div class="input-group">
-        <label for="e2">2ª Entrega (Peso 15%)</label>
-        <input type="number" id="e2" min="0" max="10" step="0.1" placeholder="Nota de 0 a 10">
+    <div id="tela-tcc" class="tela">
+        <h2>Média TCC</h2>
+        
+        <div class="input-group">
+            <label for="tcc_e1">1ª Entrega (15%)</label>
+            <input type="number" id="tcc_e1" min="0" max="10" step="0.1" placeholder="Nota de 0 a 10">
+        </div>
+        <div class="input-group">
+            <label for="tcc_e2">2ª Entrega (15%)</label>
+            <input type="number" id="tcc_e2" min="0" max="10" step="0.1" placeholder="Nota de 0 a 10">
+        </div>
+        <div class="input-group">
+            <label for="tcc_av1">3ª Entrega - Avaliador 1 (35%)</label>
+            <input type="number" id="tcc_av1" min="0" max="10" step="0.1" placeholder="Nota de 0 a 10">
+        </div>
+        <div class="input-group">
+            <label for="tcc_av2">3ª Entrega - Avaliador 2 (35%)</label>
+            <input type="number" id="tcc_av2" min="0" max="10" step="0.1" placeholder="Nota de 0 a 10">
+        </div>
+
+        <button onclick="calcular_tcc()">Calcular Média TCC</button>
+        <button class="btn-voltar" onclick="mudarTela('tela-menu')">← Voltar ao Menu</button>
+
+        <div id="resultado-tcc" class="result-box">
+            <h3 id="statusTxt-tcc"></h3>
+            <p>Média da Banca (E3): <span id="notaE3Txt-tcc" style="font-weight: bold;"></span></p>
+            <p>Média Final: <span id="mediaFinalTxt-tcc" style="font-weight: bold; font-size: 1.3rem;"></span></p>
+        </div>
     </div>
 
-    <div class="input-group">
-        <label for="av1">3ª Entrega - Avaliador 1 (Peso 35%)</label>
-        <input type="number" id="av1" min="0" max="10" step="0.1" placeholder="Nota de 0 a 10">
-    </div>
+    <div id="tela-pi" class="tela">
+        <h2>Média Projeto Integrador</h2>
+        
+        <div class="input-group">
+            <label for="pi_a1">Avaliação 1: Plano de Ação (15%)</label>
+            <input type="number" id="pi_a1" min="0" max="10" step="0.1" placeholder="Nota de 0 a 10">
+        </div>
+        <div class="input-group">
+            <label for="pi_a2">Avaliação 2: Relatório Parcial (25%)</label>
+            <input type="number" id="pi_a2" min="0" max="10" step="0.1" placeholder="Nota de 0 a 10">
+        </div>
+        <div class="input-group">
+            <label for="pi_a3">Avaliação 3: Relatório Final (35%)</label>
+            <input type="number" id="pi_a3" min="0" max="10" step="0.1" placeholder="Nota de 0 a 10">
+        </div>
+        <div class="input-group">
+            <label for="pi_a4">Avaliação 4: Ficha e Vídeo (10%)</label>
+            <input type="number" id="pi_a4" min="0" max="10" step="0.1" placeholder="Nota de 0 a 10">
+        </div>
+        <div class="input-group">
+            <label for="pi_a5">Avaliação 5: Avaliação Colaborativa (15%)</label>
+            <input type="number" id="pi_a5" min="0" max="10" step="0.1" placeholder="Nota de 0 a 10">
+        </div>
 
-    <div class="input-group">
-        <label for="av2">3ª Entrega - Avaliador 2 (Peso 35%)</label>
-        <input type="number" id="av2" min="0" max="10" step="0.1" placeholder="Nota de 0 a 10">
-    </div>
+        <button onclick="calcular_pi()">Calcular Média PI</button>
+        <button class="btn-voltar" onclick="mudarTela('tela-menu')">← Voltar ao Menu</button>
 
-    <button onclick="calcular_tcc()">Calcular Média Final</button>
-
-    <div id="resultado" class="result-box">
-        <h3 id="statusTxt"></h3>
-        <p>Média da Banca (E3): <span id="notaE3Txt" style="font-weight: bold;"></span></p>
-        <p>Média Final: <span id="mediaFinalTxt" style="font-weight: bold; font-size: 1.3rem;"></span></p>
+        <div id="resultado-pi" class="result-box">
+            <h3 id="statusTxt-pi"></h3>
+            <p>Média Final: <span id="mediaFinalTxt-pi" style="font-weight: bold; font-size: 1.3rem;"></span></p>
+        </div>
     </div>
 
     <footer>
         Desenvolvido por <a href="https://www.instagram.com/prof.sergio.eric.matematica" target="_blank">@prof.sergio.eric.matematica</a><br>
-        <small>&copy; 2026</small> 
+        <small>&copy; 2026</small>
     </footer>
 </div>
 
 <script>
+// Função para navegar entre as telas (Menu, TCC, PI)
+function mudarTela(idTelaDestino) {
+    // Esconde todas as telas
+    const telas = document.querySelectorAll('.tela');
+    telas.forEach(tela => {
+        tela.classList.remove('ativa');
+    });
+
+    // Oculta os resultados ao mudar de tela para manter a interface limpa
+    document.getElementById('resultado-tcc').style.display = 'none';
+    document.getElementById('resultado-pi').style.display = 'none';
+
+    // Mostra a tela desejada
+    document.getElementById(idTelaDestino).classList.add('ativa');
+}
+
+// Lógica de Cálculo do TCC
 function calcular_tcc() {
-    // Captura os valores digitados e converte para float
-    const e1 = parseFloat(document.getElementById('e1').value) || 0;
-    const e2 = parseFloat(document.getElementById('e2').value) || 0;
-    const av1 = parseFloat(document.getElementById('av1').value) || 0;
-    const av2 = parseFloat(document.getElementById('av2').value) || 0;
+    const e1 = parseFloat(document.getElementById('tcc_e1').value) || 0;
+    const e2 = parseFloat(document.getElementById('tcc_e2').value) || 0;
+    const av1 = parseFloat(document.getElementById('tcc_av1').value) || 0;
+    const av2 = parseFloat(document.getElementById('tcc_av2').value) || 0;
 
-    // Pesos da estrutura da UNIVESP
-    const PESO_E1 = 0.15;
-    const PESO_E2 = 0.15;
-    const PESO_E3 = 0.70; // 35% + 35%
-    
-    // Média simples dos dois avaliadores para obter a nota da Entrega 3
     const notaEntrega3 = (av1 + av2) / 2;
+    const mediaFinal = (e1 * 0.15) + (e2 * 0.15) + (notaEntrega3 * 0.70);
     
-    // Média ponderada final
-    const mediaFinal = (e1 * PESO_E1) + (e2 * PESO_E2) + (notaEntrega3 * PESO_E3);
-    
-    // Exibição dos resultados na tela
-    const resultBox = document.getElementById('resultado');
-    const statusTxt = document.getElementById('statusTxt');
-    const notaE3Txt = document.getElementById('notaE3Txt');
-    const mediaFinalTxt = document.getElementById('mediaFinalTxt');
+    exibirResultado('tcc', mediaFinal, notaEntrega3);
+}
 
-    notaE3Txt.innerText = notaEntrega3.toFixed(2);
+// Lógica de Cálculo do PI
+function calcular_pi() {
+    const a1 = parseFloat(document.getElementById('pi_a1').value) || 0; // 15%
+    const a2 = parseFloat(document.getElementById('pi_a2').value) || 0; // 25%
+    const a3 = parseFloat(document.getElementById('pi_a3').value) || 0; // 35%
+    const a4 = parseFloat(document.getElementById('pi_a4').value) || 0; // 10%
+    const a5 = parseFloat(document.getElementById('pi_a5').value) || 0; // 15%
+
+    const mediaFinal = (a1 * 0.15) + (a2 * 0.25) + (a3 * 0.35) + (a4 * 0.10) + (a5 * 0.15);
+    
+    exibirResultado('pi', mediaFinal);
+}
+
+// Função auxiliar para renderizar os resultados na tela correspondente
+function exibirResultado(tipo, mediaFinal, notaExtra = null) {
+    const resultBox = document.getElementById(`resultado-${tipo}`);
+    const statusTxt = document.getElementById(`statusTxt-${tipo}`);
+    const mediaFinalTxt = document.getElementById(`mediaFinalTxt-${tipo}`);
+
     mediaFinalTxt.innerText = mediaFinal.toFixed(2);
 
-    // Validação da aprovação (Nota de corte = 5.0)
+    if (tipo === 'tcc' && notaExtra !== null) {
+        document.getElementById('notaE3Txt-tcc').innerText = notaExtra.toFixed(2);
+    }
+
     if (mediaFinal >= 5.0) {
         statusTxt.innerText = "🎉 Aprovado!";
         resultBox.className = "result-box aprovado";
@@ -209,7 +313,6 @@ function calcular_tcc() {
         resultBox.className = "result-box reprovado";
     }
 
-    // Torna a caixa de resultado visível
     resultBox.style.display = 'block';
 }
 </script>
